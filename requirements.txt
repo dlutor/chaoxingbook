@@ -1,0 +1,4 @@
+PyExecJS==1.5.1
+img2pdf==0.3.3
+requests==2.22.0
+tqdm==4.34.0
