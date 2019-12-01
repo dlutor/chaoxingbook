@@ -3,6 +3,7 @@ import os,re
 import execjs
 import json
 import img2pdf
+import time
 from pathlib import Path
 from tqdm import tqdm
 class Basic(object):
@@ -89,8 +90,14 @@ class Basic(object):
         return self.s.post(url=url, data=data, headers=self.headers, proxies=self.proxies)
 
     def download(self, url, path='download'):
+        r = self.get(url)
+        print(r.headers)
+        if r.headers['Content-Type'] != 'image/png':
+            time.sleep(1)
+            self.download(url, path)
+            return 0
         with open(path, 'wb') as f:
-            f.write(self.get(url).content)
+            f.write(r.content)
     def write_json(self,data,path):
         with open(path,'w') as f:
             json.dump(data,f)
@@ -123,10 +130,11 @@ class Basic(object):
             data=[str(i) for i in p.iterdir() if i.suffix == ".png"]
             try:
                 f.write(img2pdf.convert(data))
-            except:
+                for i in tqdm(data):
+                    Path(i).unlink()
+            except Exception as e:
+                print(e)
                 print('jpg/ 目录为空')
-        for i in tqdm(data):
-            Path(i).unlink()
 
 
 
