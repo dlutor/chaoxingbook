@@ -91,13 +91,16 @@ class Basic(object):
 
     def download(self, url, path='download'):
         r = self.get(url)
-        print(r.headers)
         if r.headers['Content-Type'] != 'image/png':
             time.sleep(1)
             self.download(url, path)
             return 0
         with open(path, 'wb') as f:
             f.write(r.content)
+    def read(self, path, mode):
+        with open(path, mode) as f:
+            data = f.read()
+        return data
     def write_json(self,data,path):
         with open(path,'w') as f:
             json.dump(data,f)
@@ -119,15 +122,18 @@ class Basic(object):
         print(f'{file_name},共有{pages}页')
         pattern='var str = "(.*?)";'
         sub_url=re.findall(pattern,r.text)[0]
+        data=[]
         for i in tqdm(range(int(pages))):
             down_url = 'http://readsvr.chaoxing.com{}{:0>6d}?zoom=0'.format(sub_url, i+1)
-            self.download(down_url,self.dirs+str(i+1)+'.png')
-        self.create_pdf(self.pdf_dir+file_name+'.pdf')
+            name=self.dirs+str(i+1)+'.png'
+            self.download(down_url,name)
+            data.append(name)
+        self.create_pdf(self.pdf_dir+file_name+'.pdf',data)
         print('成功')
-    def create_pdf(self,pdf_name:str):
+    def create_pdf(self,pdf_name:str,data:list):
         with open(pdf_name,'wb') as f:
-            p=Path(self.dirs)
-            data=[str(i) for i in p.iterdir() if i.suffix == ".png"]
+            # p=Path(self.dirs)
+            # data=[str(i) for i in p.iterdir() if i.suffix == ".png"]
             try:
                 f.write(img2pdf.convert(data))
                 for i in tqdm(data):
